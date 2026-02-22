@@ -2,78 +2,794 @@
 <html lang="es">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Calculadora Simple</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CrepaPOS Móvil</title>
     <style>
+        :root {
+            --bg: #f7f7fb;
+            --card: #ffffff;
+            --primary: #6c3cf0;
+            --primary-soft: #efe9ff;
+            --text: #20202a;
+            --muted: #76768a;
+            --success: #2b9f4b;
+            --danger: #d64045;
+            --warning: #f4a236;
+            --shadow: 0 12px 30px rgba(24, 24, 32, 0.08);
+            --radius: 14px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Inter", system-ui, -apple-system, sans-serif;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            background: #f1f1f1;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
+            padding: 20px;
+        }
+
+        .app-shell {
+            width: min(100%, 460px);
+            background: var(--card);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid #ececf3;
+        }
+
+        .header {
+            background: linear-gradient(140deg, #7a43ff, #5f35d8);
+            color: white;
+            padding: 18px;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            height: 100vh;
         }
 
-        .calculadora {
-            background: white;
-            padding: 30px;
+        .header h1 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .header small {
+            opacity: 0.9;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .content {
+            padding: 14px;
+            background: var(--bg);
+            min-height: 80vh;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fade .2s ease;
+        }
+
+        @keyframes fade {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 14px;
+            box-shadow: 0 5px 20px rgba(14, 14, 20, 0.06);
+            margin-bottom: 12px;
+        }
+
+        .card h2,
+        .card h3 {
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .grid.cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--primary-soft);
+            color: #4f2bbb;
+            font-size: .75rem;
+            font-weight: 600;
+        }
+
+        .metric {
+            padding: 10px;
+            border: 1px solid #ececf3;
             border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background: #fff;
         }
 
-        input[type="number"] {
-            width: 100px;
+        .metric .value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 12px;
+            padding: 11px 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform .08s ease, opacity .2s ease;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn.primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn.secondary {
+            background: #f0f0f7;
+            color: #3d3d53;
+        }
+
+        .btn.success {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .btn.danger {
+            background: #ffe9ea;
+            color: #9e2025;
+        }
+
+        .btn.block {
+            width: 100%;
+        }
+
+        .actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        input,
+        select {
+            border: 1px solid #d7d7e4;
+            border-radius: 10px;
+            padding: 10px;
+            width: 100%;
+            font-size: .95rem;
+            background: white;
+        }
+
+        label {
+            font-size: .85rem;
+            color: var(--muted);
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .form-row {
+            margin-bottom: 10px;
+        }
+
+        .product-item,
+        .cart-item,
+        .sale-item {
+            border: 1px solid #ebebf5;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #fff;
+        }
+
+        .product-item header,
+        .cart-item header,
+        .sale-item header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .product-item p,
+        .sale-item p,
+        .cart-item p {
+            color: var(--muted);
+            font-size: .84rem;
+            margin-top: 4px;
+        }
+
+        .small-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .small-actions button {
+            border: 0;
+            border-radius: 8px;
+            padding: 6px 8px;
+            font-size: .78rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .pay-methods {
+            display: grid;
+            gap: 6px;
+        }
+
+        .pay-method {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #ececf3;
+            border-radius: 9px;
             padding: 8px;
-            margin: 5px;
-            font-size: 16px;
         }
 
-        select,
-        button {
+        .pay-method input {
+            width: auto;
+        }
+
+        .hint {
+            font-size: .8rem;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        .notice {
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: .85rem;
+            display: none;
+        }
+
+        .notice.show {
+            display: block;
+        }
+
+        .notice.success {
+            background: #e8faed;
+            color: #176b32;
+        }
+
+        .notice.error {
+            background: #feecee;
+            color: #8d1f24;
+        }
+
+        .footer-nav {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            background: #fff;
+            border-top: 1px solid #ececf4;
             padding: 8px;
-            font-size: 16px;
-            margin: 5px;
+            position: sticky;
+            bottom: 0;
         }
 
-        .resultado {
-            margin-top: 15px;
-            font-weight: bold;
+        .footer-nav button {
+            border: 0;
+            background: transparent;
+            padding: 8px 4px;
+            border-radius: 8px;
+            color: #66667a;
+            font-weight: 700;
+            font-size: .75rem;
+            cursor: pointer;
+        }
+
+        .footer-nav button.active {
+            background: var(--primary-soft);
+            color: #532fbf;
+        }
+
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 
 <body>
+    <div class="app-shell">
+        <div class="header">
+            <div>
+                <h1>CrepaPOS</h1>
+                <small id="current-user">Sin sesión</small>
+            </div>
+            <button class="btn secondary" id="btn-logout">Salir</button>
+        </div>
+        <div class="content">
+            <div class="notice" id="notice"></div>
 
-    <div class="calculadora">
-        <h2>Calculadora: Suma y Resta</h2>
-        <form method="post">
-            <input type="number" name="num1" required>
-            <select name="operacion">
-                <option value="sumar">+</option>
-                <option value="restar">-</option>
-            </select>
-            <input type="number" name="num2" required>
-            <button type="submit">Calcular</button>
-        </form>
+            <section class="screen active" id="screen-login">
+                <div class="card">
+                    <h2>Acceso autorizado</h2>
+                    <p class="hint">Ingresa tu usuario y PIN para registrar ventas de forma segura.</p>
+                    <div class="form-row">
+                        <label for="login-user">Usuario</label>
+                        <input id="login-user" placeholder="ej. ana" />
+                    </div>
+                    <div class="form-row">
+                        <label for="login-pin">PIN</label>
+                        <input id="login-pin" type="password" maxlength="6" placeholder="****" />
+                    </div>
+                    <button class="btn primary block" id="btn-login">Iniciar sesión</button>
+                    <p class="hint">Usuarios demo: ana/1234, luis/4321.</p>
+                </div>
+            </section>
 
-        <?php
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        $num1 = $_POST["num1"];
-        $num2 = $_POST["num2"];
-        $operacion = $_POST["operacion"];
-        $resultado = 0;
+            <section class="screen" id="screen-home">
+                <div class="card">
+                    <h2>Inicio</h2>
+                    <p class="hint">Total vendido hoy</p>
+                    <div class="value" id="daily-total-home" style="font-size:1.8rem;font-weight:700;">$0.00</div>
+                </div>
+                <div class="actions">
+                    <button class="btn primary" data-goto="screen-sale">Nueva venta</button>
+                    <button class="btn secondary" data-goto="screen-reports">Ver reportes</button>
+                </div>
+                <div class="card">
+                    <h3>Control rápido de caja</h3>
+                    <div class="grid cols-2">
+                        <div class="metric">
+                            <div>Efectivo</div>
+                            <div class="value" id="quick-cash">$0.00</div>
+                        </div>
+                        <div class="metric">
+                            <div>Tarjeta</div>
+                            <div class="value" id="quick-card">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-        if ($operacion == "sumar") {
-            $resultado = $num1 + $num2;
-        } elseif ($operacion == "restar") {
-            $resultado = $num1 - $num2;
-        }
+            <section class="screen" id="screen-sale">
+                <div class="card">
+                    <h2>Registrar venta</h2>
+                    <div id="products-list"></div>
+                </div>
+                <div class="card">
+                    <h3>Carrito</h3>
+                    <div id="cart-list"></div>
+                    <p style="margin-top:8px;font-weight:700;">Total: <span id="sale-total">$0.00</span></p>
+                </div>
+                <div class="card">
+                    <h3>Método de pago</h3>
+                    <div class="pay-methods">
+                        <label class="pay-method"><input type="radio" name="pay" value="efectivo" checked /> Efectivo</label>
+                        <label class="pay-method"><input type="radio" name="pay" value="transferencia" /> Transferencia</label>
+                        <label class="pay-method"><input type="radio" name="pay" value="tarjeta" /> Tarjeta</label>
+                    </div>
+                    <button class="btn success block" id="btn-register-sale" style="margin-top:10px;">Registrar venta</button>
+                    <p class="hint">Flujo optimizado para tardar menos de 5 segundos por venta.</p>
+                </div>
+            </section>
 
-        echo "<div class='resultado'>Resultado: $resultado</div>";
-    }
-    ?>
+            <section class="screen" id="screen-reports">
+                <div class="card">
+                    <h2>Reporte diario automático</h2>
+                    <div class="grid cols-2">
+                        <div class="metric"><div>Total ventas</div><div class="value" id="report-total-sales">$0.00</div></div>
+                        <div class="metric"><div>Pedidos</div><div class="value" id="report-orders">0</div></div>
+                        <div class="metric"><div>Ganancia día</div><div class="value" id="report-profit">$0.00</div></div>
+                        <div class="metric"><div>Método top</div><div class="value" id="report-top-method">-</div></div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Control de caja</h3>
+                    <div class="grid cols-2">
+                        <div class="metric"><div>Esperado efectivo</div><div class="value" id="cash-expected">$0.00</div></div>
+                        <div class="metric">
+                            <label for="cash-real">Caja real</label>
+                            <input id="cash-real" type="number" min="0" step="0.01" placeholder="0" />
+                            <button class="btn secondary block" id="btn-compare-cash" style="margin-top:6px;">Comparar</button>
+                        </div>
+                    </div>
+                    <p style="margin-top:8px;font-weight:700;">Diferencia: <span id="cash-diff">$0.00</span></p>
+                    <p class="hint">Totales por método: efectivo <span id="total-cash">$0.00</span>, transferencia <span id="total-transfer">$0.00</span>, tarjeta <span id="total-card">$0.00</span>.</p>
+                </div>
+                <div class="card">
+                    <h3>Historial de ventas</h3>
+                    <div class="form-row">
+                        <label for="filter-date">Filtrar por fecha</label>
+                        <input id="filter-date" type="date" />
+                    </div>
+                    <button class="btn secondary block" id="btn-filter-sales">Aplicar filtro</button>
+                    <div id="sales-history" style="margin-top:10px;"></div>
+                </div>
+            </section>
+
+            <section class="screen" id="screen-products">
+                <div class="card">
+                    <h2>Gestión de productos</h2>
+                    <div class="form-row">
+                        <label for="prod-name">Nombre</label>
+                        <input id="prod-name" placeholder="Crepa Nutella" />
+                    </div>
+                    <div class="grid cols-2">
+                        <div class="form-row">
+                            <label for="prod-price">Precio</label>
+                            <input id="prod-price" type="number" min="1" step="0.01" />
+                        </div>
+                        <div class="form-row">
+                            <label for="prod-category">Categoría</label>
+                            <select id="prod-category">
+                                <option value="Crepas">Crepas</option>
+                                <option value="Bebidas">Bebidas</option>
+                                <option value="Extras">Extras</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn primary block" id="btn-add-product">Agregar producto</button>
+                </div>
+                <div class="card">
+                    <h3>Lista de productos</h3>
+                    <div id="products-admin-list"></div>
+                </div>
+            </section>
+        </div>
+
+        <nav class="footer-nav hidden" id="app-nav">
+            <button data-goto="screen-home" class="active">Inicio</button>
+            <button data-goto="screen-sale">Venta</button>
+            <button data-goto="screen-reports">Reportes</button>
+            <button data-goto="screen-products">Productos</button>
+        </nav>
     </div>
 
+    <script>
+        const STORAGE_KEYS = {
+            products: 'crepa_pos_products',
+            sales: 'crepa_pos_sales'
+        };
+
+        const users = [
+            { username: 'ana', pin: '1234', name: 'Ana' },
+            { username: 'luis', pin: '4321', name: 'Luis' }
+        ];
+
+        let state = {
+            currentUser: null,
+            products: [],
+            sales: [],
+            cart: []
+        };
+
+        const defaultProducts = [
+            { id: crypto.randomUUID(), name: 'Crepa Nutella', price: 85, category: 'Crepas' },
+            { id: crypto.randomUUID(), name: 'Crepa Fresa', price: 90, category: 'Crepas' },
+            { id: crypto.randomUUID(), name: 'Frappé Oreo', price: 70, category: 'Bebidas' },
+            { id: crypto.randomUUID(), name: 'Café Americano', price: 40, category: 'Bebidas' },
+            { id: crypto.randomUUID(), name: 'Extra helado', price: 20, category: 'Extras' }
+        ];
+
+        const formatMoney = (n) => `$${n.toFixed(2)}`;
+        const today = () => new Date().toISOString().slice(0, 10);
+
+        const screens = document.querySelectorAll('.screen');
+        const nav = document.getElementById('app-nav');
+        const notice = document.getElementById('notice');
+
+        function showNotice(msg, type = 'success') {
+            notice.className = `notice show ${type}`;
+            notice.textContent = msg;
+            setTimeout(() => {
+                notice.className = 'notice';
+            }, 2500);
+        }
+
+        function showScreen(id) {
+            screens.forEach(s => s.classList.toggle('active', s.id === id));
+            document.querySelectorAll('.footer-nav button').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.goto === id);
+            });
+        }
+
+        function getSelectedPaymentMethod() {
+            return document.querySelector('input[name="pay"]:checked').value;
+        }
+
+        function loadData() {
+            state.products = JSON.parse(localStorage.getItem(STORAGE_KEYS.products) || 'null') || defaultProducts;
+            state.sales = JSON.parse(localStorage.getItem(STORAGE_KEYS.sales) || '[]');
+            saveData();
+        }
+
+        function saveData() {
+            localStorage.setItem(STORAGE_KEYS.products, JSON.stringify(state.products));
+            localStorage.setItem(STORAGE_KEYS.sales, JSON.stringify(state.sales));
+        }
+
+        function renderProductsForSale() {
+            const root = document.getElementById('products-list');
+            if (!state.products.length) {
+                root.innerHTML = '<p class="hint">No hay productos cargados.</p>';
+                return;
+            }
+            root.innerHTML = state.products.map(p => `
+                <article class="product-item">
+                    <header>
+                        <div>
+                            <strong>${p.name}</strong>
+                            <p>${p.category} · ${formatMoney(p.price)}</p>
+                        </div>
+                        <button class="btn secondary" onclick="addToCart('${p.id}')">Agregar</button>
+                    </header>
+                </article>
+            `).join('');
+        }
+
+        function renderProductsForAdmin() {
+            const root = document.getElementById('products-admin-list');
+            root.innerHTML = state.products.map(p => `
+                <article class="product-item">
+                    <header>
+                        <div>
+                            <strong>${p.name}</strong>
+                            <p>${p.category} · ${formatMoney(p.price)}</p>
+                        </div>
+                    </header>
+                    <div class="small-actions">
+                        <button onclick="editProduct('${p.id}')">Editar</button>
+                        <button style="background:#ffe9ea;color:#9e2025;" onclick="deleteProduct('${p.id}')">Eliminar</button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function addToCart(productId) {
+            const product = state.products.find(p => p.id === productId);
+            const existing = state.cart.find(c => c.id === productId);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                state.cart.push({ ...product, qty: 1 });
+            }
+            renderCart();
+        }
+
+        function changeQty(productId, delta) {
+            const item = state.cart.find(c => c.id === productId);
+            if (!item) return;
+            item.qty += delta;
+            if (item.qty <= 0) {
+                state.cart = state.cart.filter(c => c.id !== productId);
+            }
+            renderCart();
+        }
+
+        function renderCart() {
+            const root = document.getElementById('cart-list');
+            if (!state.cart.length) {
+                root.innerHTML = '<p class="hint">Sin productos en carrito.</p>';
+            } else {
+                root.innerHTML = state.cart.map(item => `
+                    <article class="cart-item">
+                        <header>
+                            <div>
+                                <strong>${item.name}</strong>
+                                <p>${item.qty} x ${formatMoney(item.price)} = ${formatMoney(item.qty * item.price)}</p>
+                            </div>
+                        </header>
+                        <div class="small-actions">
+                            <button onclick="changeQty('${item.id}', -1)">-</button>
+                            <button onclick="changeQty('${item.id}', 1)">+</button>
+                        </div>
+                    </article>
+                `).join('');
+            }
+            const total = state.cart.reduce((sum, i) => sum + i.qty * i.price, 0);
+            document.getElementById('sale-total').textContent = formatMoney(total);
+        }
+
+        function registerSale() {
+            if (!state.cart.length) {
+                showNotice('Agrega productos antes de registrar la venta.', 'error');
+                return;
+            }
+            const total = state.cart.reduce((sum, i) => sum + i.qty * i.price, 0);
+            const sale = {
+                id: crypto.randomUUID(),
+                items: state.cart,
+                total,
+                paymentMethod: getSelectedPaymentMethod(),
+                employee: state.currentUser.name,
+                createdAt: new Date().toISOString()
+            };
+            state.sales.unshift(sale);
+            state.cart = [];
+            saveData();
+            renderCart();
+            refreshDashboard();
+            showNotice('Venta registrada correctamente.');
+        }
+
+        function buildDailyReport(date = today()) {
+            const sales = state.sales.filter(s => s.createdAt.startsWith(date));
+            const total = sales.reduce((acc, s) => acc + s.total, 0);
+            const byMethod = {
+                efectivo: 0,
+                transferencia: 0,
+                tarjeta: 0
+            };
+            sales.forEach(s => byMethod[s.paymentMethod] += s.total);
+            const topMethod = Object.entries(byMethod).sort((a, b) => b[1] - a[1])[0][0] || '-';
+            return {
+                sales,
+                total,
+                byMethod,
+                orders: sales.length,
+                profit: total,
+                topMethod
+            };
+        }
+
+        function renderSalesHistory(date = null) {
+            const root = document.getElementById('sales-history');
+            const list = date ? state.sales.filter(s => s.createdAt.startsWith(date)) : state.sales.filter(s => s.createdAt.startsWith(today()));
+            if (!list.length) {
+                root.innerHTML = '<p class="hint">No hay ventas registradas para la fecha seleccionada.</p>';
+                return;
+            }
+            root.innerHTML = list.map(s => `
+                <article class="sale-item">
+                    <header>
+                        <div>
+                            <strong>${formatMoney(s.total)} · ${s.paymentMethod}</strong>
+                            <p>${new Date(s.createdAt).toLocaleString('es-MX')} · ${s.employee}</p>
+                            <p>${s.items.map(i => `${i.qty}x ${i.name}`).join(', ')}</p>
+                        </div>
+                        <span class="pill">#${s.id.slice(0, 5)}</span>
+                    </header>
+                </article>
+            `).join('');
+        }
+
+        function refreshDashboard() {
+            const daily = buildDailyReport();
+            document.getElementById('daily-total-home').textContent = formatMoney(daily.total);
+            document.getElementById('quick-cash').textContent = formatMoney(daily.byMethod.efectivo);
+            document.getElementById('quick-card').textContent = formatMoney(daily.byMethod.tarjeta);
+
+            document.getElementById('report-total-sales').textContent = formatMoney(daily.total);
+            document.getElementById('report-orders').textContent = daily.orders;
+            document.getElementById('report-profit').textContent = formatMoney(daily.profit);
+            document.getElementById('report-top-method').textContent = daily.topMethod;
+
+            document.getElementById('cash-expected').textContent = formatMoney(daily.byMethod.efectivo);
+            document.getElementById('total-cash').textContent = formatMoney(daily.byMethod.efectivo);
+            document.getElementById('total-transfer').textContent = formatMoney(daily.byMethod.transferencia);
+            document.getElementById('total-card').textContent = formatMoney(daily.byMethod.tarjeta);
+
+            renderSalesHistory();
+            renderProductsForSale();
+            renderProductsForAdmin();
+        }
+
+        function compareCash() {
+            const expected = buildDailyReport().byMethod.efectivo;
+            const real = Number(document.getElementById('cash-real').value || 0);
+            const diff = real - expected;
+            const diffField = document.getElementById('cash-diff');
+            diffField.textContent = formatMoney(diff);
+            diffField.style.color = diff === 0 ? 'var(--success)' : diff > 0 ? 'var(--warning)' : 'var(--danger)';
+        }
+
+        function editProduct(id) {
+            const product = state.products.find(p => p.id === id);
+            const name = prompt('Nuevo nombre', product.name);
+            if (!name) return;
+            const price = Number(prompt('Nuevo precio', product.price));
+            if (!price || price <= 0) return showNotice('Precio inválido.', 'error');
+            const category = prompt('Categoría', product.category) || product.category;
+            Object.assign(product, { name, price, category });
+            saveData();
+            refreshDashboard();
+            showNotice('Producto actualizado.');
+        }
+
+        function deleteProduct(id) {
+            if (!confirm('¿Eliminar producto?')) return;
+            state.products = state.products.filter(p => p.id !== id);
+            state.cart = state.cart.filter(c => c.id !== id);
+            saveData();
+            refreshDashboard();
+            renderCart();
+            showNotice('Producto eliminado.');
+        }
+
+        function addProduct() {
+            const name = document.getElementById('prod-name').value.trim();
+            const price = Number(document.getElementById('prod-price').value);
+            const category = document.getElementById('prod-category').value;
+            if (!name || !price || price <= 0) {
+                showNotice('Completa nombre y precio válido.', 'error');
+                return;
+            }
+            state.products.push({ id: crypto.randomUUID(), name, price, category });
+            saveData();
+            refreshDashboard();
+            document.getElementById('prod-name').value = '';
+            document.getElementById('prod-price').value = '';
+            showNotice('Producto agregado correctamente.');
+        }
+
+        function login() {
+            const username = document.getElementById('login-user').value.trim().toLowerCase();
+            const pin = document.getElementById('login-pin').value.trim();
+            const user = users.find(u => u.username === username && u.pin === pin);
+            if (!user) {
+                showNotice('Credenciales incorrectas.', 'error');
+                return;
+            }
+            state.currentUser = user;
+            document.getElementById('current-user').textContent = `Empleado: ${user.name}`;
+            nav.classList.remove('hidden');
+            showScreen('screen-home');
+            refreshDashboard();
+            showNotice(`Bienvenido, ${user.name}.`);
+        }
+
+        function logout() {
+            state.currentUser = null;
+            state.cart = [];
+            document.getElementById('current-user').textContent = 'Sin sesión';
+            nav.classList.add('hidden');
+            showScreen('screen-login');
+            renderCart();
+        }
+
+        document.getElementById('btn-login').addEventListener('click', login);
+        document.getElementById('btn-logout').addEventListener('click', logout);
+        document.getElementById('btn-register-sale').addEventListener('click', registerSale);
+        document.getElementById('btn-compare-cash').addEventListener('click', compareCash);
+        document.getElementById('btn-filter-sales').addEventListener('click', () => renderSalesHistory(document.getElementById('filter-date').value));
+        document.getElementById('btn-add-product').addEventListener('click', addProduct);
+
+        document.querySelectorAll('[data-goto]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!state.currentUser) return;
+                showScreen(btn.dataset.goto);
+            });
+        });
+
+        loadData();
+        renderCart();
+    </script>
 </body>
 
 </html>
